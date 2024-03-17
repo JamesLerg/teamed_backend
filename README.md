@@ -1,2 +1,3 @@
-# teamed_backend
-Backend system of teamed app
+## teamed_backend
+
+Created using Flask and SQL Alchemy in Python
