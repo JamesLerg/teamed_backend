@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify, render_template
 import enum
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+import flask_restful import Api, Resources, reqparse
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
@@ -16,6 +17,9 @@ db = SQLAlchemy()
 bcrypt = Bcrypt(app)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "app.db")
+
+api = Api()
+api.init_app(app)
 
 db.init_app(app)
 
@@ -92,12 +96,12 @@ def login():
     data = request.get_json()
     email = data['email']
     password = data['password']
-    user = User.query.filter_by(email=email, password=password).first()
+    user = User.query.filter_by(email=email).first()
     if user:
         if bcrypt.check_password_hash(user.password, password):
             return jsonify({'message': 'Login successful'})
-    else:
-        return jsonify({'message': 'Email doesn\'t exist or password is incorrect'})
+        
+    return jsonify({'message': 'Invalid credentials'})
 
 #route to retrieve all data about a given user
 @app.route('/users/<email>', methods=['GET'])
