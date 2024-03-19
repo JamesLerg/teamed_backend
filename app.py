@@ -15,7 +15,7 @@ import sqlite3
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
-cors = CORS(app)
+CORS(app)
 db = SQLAlchemy()
 bcrypt = Bcrypt(app)
 
@@ -148,14 +148,15 @@ def register():
         userType = data['userType']
         #validate user
         if (validate_user(email) == False):
-            return jsonify({'message': 'User already exists'})
+            return jsonify({'ststus':406, 'message': 'User already exists'})
         hashed = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(name, email, hashed, userType)
         db.session.add(user)
         db.session.commit()
-        return jsonify({'message': 'User created successfully'})
+        return jsonify({'status':200, 'message': 'User created successfully'})
 
 @app.route('/login', methods=['POST'])
+@cross_origin()
 def login():
     data = request.get_json()
     email = data['email']
@@ -170,6 +171,7 @@ def login():
 
 #route to retrieve all data about a given user
 @app.route('/users/<email>', methods=['GET'])
+@cross_origin()
 def get_user(email):
     user = User.query.filter_by(email=email).first()
     if user:
@@ -185,6 +187,7 @@ def get_user(email):
 
 #test route 
 @app.route('/users', methods=['GET'])
+@cross_origin()
 def get_all_users():
     users = User.query.all()
     output = []
@@ -201,7 +204,7 @@ def get_all_users():
 '''
 Lead Routes
 '''
-@app.route('/add_lead', methods=['POST'])
+@app.route('/lead/add', methods=['POST'])
 @cross_origin()
 def add_lead():
     data = request.get_json()
@@ -214,9 +217,10 @@ def add_lead():
     lead = Lead(name, description, upper_estimate, lower_estimate, closing_date, status)
     db.session.add(lead)
     db.session.commit()
-    return jsonify({'message': 'Lead added successfully'})
-
+    return jsonify({'status': 200, 'message': 'Lead added successfully'})
+#test route
 @app.route('/leads', methods=['GET'])
+@cross_origin()
 def get_all_leads():
     leads = Lead.query.all()
     output = []

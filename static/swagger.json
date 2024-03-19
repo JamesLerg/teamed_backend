@@ -24,7 +24,7 @@
       "description": "Describes different users on Teamed"
     },
     {
-      "name": "prospect",
+      "name": "lead",
       "description": "A lead or pre-worked project"
     },
     {
@@ -33,7 +33,7 @@
     }
   ],
   "paths": {
-    "/user/login": {
+    "/login": {
       "post": {
         "tags": [
           "user"
@@ -99,7 +99,7 @@
         }
       }
     },
-    "/user/register": {
+    "/register": {
       "post": {
         "tags": [
           "user"
@@ -115,7 +115,7 @@
         }
       }
     },
-    "/user/{email}": {
+    "/users/{email}": {
       "get": {
         "tags": [
           "user"
@@ -191,6 +191,37 @@
           }
         }
       }
+    },
+    "/lead/add": {
+      "post": {
+        "tags": [
+          "lead"
+        ],
+        "summary": "Adds a lead to the leads tabls",
+        "operationId": "addLead",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "lead",
+            "description": "Body request for creating a lead",
+            "schema": {
+              "$ref": "#/components/schemas/Lead"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully adds a lead to the Leads table",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Lead"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -227,6 +258,39 @@
         },
         "xml": {
           "name": "user"
+        }
+      },
+      "Lead": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "theUser"
+          },
+          "description": {
+            "type": "string",
+            "example": "Electrical Company"
+          },
+          "upper_estimate": {
+            "type": "integer",
+            "format": "int64",
+            "example": 100000
+          },
+          "lower_estimate": {
+            "type": "integer",
+            "format": "int64",
+            "example": 40000
+          },
+          "closing_date": {
+            "type": "string",
+            "description": "Type of user on Teamed",
+            "example": "PROJECT_MANAGER"
+          },
+          "status": {
+            "type": "string",
+            "description": "Lead can be a prospect, submitted, successful, unsuccessful",
+            "example": "prospects"
+          }
         }
       }
     },
