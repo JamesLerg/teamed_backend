@@ -56,6 +56,7 @@ user_type = {
     'CLIENT': 'client',
     'PROJECT_MANAGER': 'project_manager'
 }
+#Different uesrs in Teamed
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True, unique = True, nullable = False, autoincrement = True)
@@ -72,7 +73,8 @@ class User(db.Model):
 
     def __repr__(self):
         return f"User('{self.name}', '{self.email}')"
-
+    
+#Defined work and outline of what's going to happen
 class Project(db.Model):
     __tablename__ = 'project'
     id = db.Column(db.Integer, primary_key=True , unique = True, nullable = False, autoincrement = True)
@@ -85,6 +87,28 @@ class Project(db.Model):
 
     def __repr__(self):
         return f"Project('{self.idea}', '{self.description}')"
+    
+#Before something becomes a project, not worked on, approximated
+class Lead(db.Model):
+    __tablename__ = 'lead'
+    id = db.Column(db.Integer, primary_key=True , unique = True, nullable = False, autoincrement = True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(50), nullable=False) #This needs to be a short summary of the project i.e Solar Power Manufacturer
+    upper_estimate = db.Column(db.Integer, nullable=False) #This is the upper estimate of the project i.e 100000
+    lower_estimate =  db.Column(db.Integer, nullable=False) #This is the lower estimate of the project i.e 50000
+    closing_date = db.Column(db.String(100), nullable=False) #This is the closing date of the project i.e 2021-12-12
+    status = db.Column(db.String(100), nullable=False) #This is the status of the project i.e prospect, submitted, successful, unsuccessful 
+
+    def __init__(self, name, description, upper_estimate, lower_estimate, closing_date, status):
+        self.name = name
+        self.description = description
+        self.upper_estimate = upper_estimate
+        self.lower_estimate = lower_estimate
+        self.closing_date = closing_date
+        self.status = status
+
+    def __repr__(self):
+        return f"Lead('{self.name}', '{self.description}', '{self.upper_estimate}', '{self.lower_estimate}', '{self.closing_date}', '{self.status}')"
     
 # Create all tables in the database
 with app.app_context():
@@ -111,7 +135,9 @@ def get_user_data(user):
 @app.route('/')
 def hello_world():
     return 'Welcome to Teamed backend'
-
+'''
+User Routes
+'''
 @app.route('/register', methods=['POST'])
 @cross_origin()
 def register():
@@ -172,3 +198,36 @@ def get_all_users():
         output.append(user_data)
     return jsonify({'users': output})
 
+'''
+Lead Routes
+'''
+@app.route('/add_lead', methods=['POST'])
+@cross_origin()
+def add_lead():
+    data = request.get_json()
+    name = data['name']
+    description = data['description']
+    upper_estimate = data['upper_estimate']
+    lower_estimate = data['lower_estimate']
+    closing_date = data['closing_date']
+    status = data['status']
+    lead = Lead(name, description, upper_estimate, lower_estimate, closing_date, status)
+    db.session.add(lead)
+    db.session.commit()
+    return jsonify({'message': 'Lead added successfully'})
+
+@app.route('/leads', methods=['GET'])
+def get_all_leads():
+    leads = Lead.query.all()
+    output = []
+    for lead in leads:
+        lead_data = {}
+        lead_data['id'] = lead.id
+        lead_data['name'] = lead.name
+        lead_data['description'] = lead.description
+        lead_data['upper_estimate'] = lead.upper_estimate
+        lead_data['lower_estimate'] = lead.lower_estimate
+        lead_data['closing_date'] = lead.closing_date
+        lead_data['status'] = lead.status
+        output.append(lead_data)
+    return jsonify({'leads': output})
