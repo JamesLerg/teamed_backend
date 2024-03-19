@@ -3,5 +3,6 @@ psycopg2-binary
 Flask-SQLAlchemy
 requests
 flask_bcrypt
-flask-restful
 flask-swagger-ui
+flask_restful
+flask-cors

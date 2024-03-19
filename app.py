@@ -4,7 +4,9 @@ from flask import Flask, request, jsonify, render_template
 import enum
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-import flask_restful import Api, Resources, reqparse
+from flask_restful import Api, Resource, reqparse
+from flask_swagger_ui import get_swaggerui_blueprint
+from flask_cors import CORS, cross_origin
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
@@ -13,13 +15,38 @@ import sqlite3
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
+cors = CORS(app)
 db = SQLAlchemy()
 bcrypt = Bcrypt(app)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "app.db")
+app.config['CORS_HEADERS'] = 'Content-Type'
 
-api = Api()
-api.init_app(app)
+##Swagger configuration
+
+SWAGGER_URL = '/api/docs'  # URL for exposing Swagger UI (without trailing '/')
+API_URL = '/static/swagger.json'  # Our API url (can of course be a local resource)
+
+# Call factory function to create our blueprint
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,  # Swagger UI static files will be mapped to '{SWAGGER_URL}/dist/'
+    API_URL,
+    config={  # Swagger UI config overrides
+        'app_name': "Test application"
+    },
+    # oauth_config={  # OAuth config. See https://github.com/swagger-api/swagger-ui#oauth2-configuration .
+    #    'clientId': "your-client-id",
+    #    'clientSecret': "your-client-secret-if-required",
+    #    'realm': "your-realms",
+    #    'appName': "your-app-name",
+    #    'scopeSeparator': " ",
+    #    'additionalQueryStringParams': {'test': "hello"}
+    # }
+)
+
+app.register_blueprint(swaggerui_blueprint)
+
+## End swagger configuration
 
 db.init_app(app)
 
@@ -71,11 +98,22 @@ def validate_user(email):
         return False
     return True
 
+def get_user_data(user):
+    users = User.query.all()
+    user_data = {}
+    for user in users:
+        user_data['id'] = user.id
+        user_data['name'] = user.name
+        user_data['email'] = user.email
+        user_data['userType'] = user.userType
+    return user_data
+
 @app.route('/')
 def hello_world():
     return 'Welcome to Teamed backend'
 
 @app.route('/register', methods=['POST'])
+@cross_origin()
 def register():
         data = request.get_json()
         name = data['name']
@@ -99,8 +137,9 @@ def login():
     user = User.query.filter_by(email=email).first()
     if user:
         if bcrypt.check_password_hash(user.password, password):
-            return jsonify({'message': 'Login successful'})
-        
+            user_data = get_user_data(user)
+            login_response = jsonify({'message': 'Login successful', 'user': user_data})
+            return login_response
     return jsonify({'message': 'Invalid credentials'})
 
 #route to retrieve all data about a given user
